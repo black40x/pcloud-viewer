@@ -1,0 +1,30 @@
+{
+  "name": "viewer-proto",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "flow": "flow",
+    "build-flow": "babel src/ -d dist/",
+    "build-prod": "rollup -c --environment BUILD:production",
+    "watch-dev": "rollup -c --environment BUILD:dev --watch",
+    "dev": "concurrently --names \"ROLLUP,HTTP\" -c \"bgBlue.bold,bgGreen.bold\" \"rollup -c rollup.config.js -w -m inline\" \"serve -p 8000\""
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.19.3",
+    "@babel/core": "^7.19.3",
+    "@babel/preset-flow": "^7.18.6",
+    "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-node-resolve": "^13.1.3",
+    "concurrently": "^7.0.0",
+    "eslint": "^8.7.0",
+    "flow-bin": "^0.188.2",
+    "rollup": "^2.64.0",
+    "rollup-plugin-inject": "^3.0.2"
+  },
+  "dependencies": {
+    "three": "^0.136.0"
+  }
+}
