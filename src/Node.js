@@ -64,10 +64,6 @@ export class OctreeNode {
     if (this.pointCloudPoints) {
       this.pointCloudPoints.visible = visible
     }
-
-    this.getChildren().forEach(child => {
-      child.setVisibility(visible)
-    })
   }
 
   isVisible(): boolean {
@@ -164,7 +160,7 @@ export class OctreeNode {
 
     this.pointCloudPoints = new Points(this.geometry, new PointMaterial())
 
-    if (this.isVisible()) {
+    if (this.visible) {
       this.scene.add(this.pointCloudPoints)
     }
   }

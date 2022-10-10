@@ -71,18 +71,16 @@ class Viewer {
     this.controls.zoomSpeed = 1.2
     this.controls.panSpeed = 0.1
 
-    /*
     this.controls.addEventListener('change', () => {
       this.render()
     })
-    */
   }
 
   loadPointCloud(options: PointCloudOptions) {
     if (!this.pointCloud) {
       this.pointCloud = new PointCloud(options)
       this.pointCloud.init(this.scene, () => {
-        //
+        this.render()
       })
     } else {
       throw new Error(`PointCloud already loaded`)
@@ -92,13 +90,45 @@ class Viewer {
   animation() {
     requestAnimationFrame(this.animation.bind(this))
     this.controls.update()
-    this.render()
+    // this.render()
   }
 
   render() {
     this.renderer.render(this.scene, this.camera)
     if (this.pointCloud && this.pointCloud.isInited()) {
-      this.pointCloud.getVisibleNodes(this.camera)
+      let result = this.pointCloud.getVisibleNodes(this.camera, this.renderer)
+
+      //
+      if (result.lowestSpacing !== Infinity) {
+        let near = result.lowestSpacing * 10.0
+        let far = -this.pointCloud.rootNode.boundingBox.applyMatrix4(this.camera.matrixWorldInverse).min.z
+
+        far = Math.max(far * 1.5, 10000)
+        near = Math.min(100.0, Math.max(0.01, near))
+        far = Math.max(far, near + 10000)
+
+        if (near === Infinity){
+          near = 0.1
+        }
+
+        this.camera.near = near
+        this.camera.far = far
+      }
+      //
+
+      Object.keys(this.pointCloud.nodes).forEach(key => {
+        if (result.visibleNodes.includes(this.pointCloud.nodes[key])) {
+          this.pointCloud.nodes[key].setVisibility(true)
+        } else {
+          this.pointCloud.nodes[key].setVisibility(false)
+        }
+      })
+
+      result.visibleNodes.forEach(node => {
+        if (!node.isLoaded()) {
+          node.loadPoints()
+        }
+      })
     }
   }
 }

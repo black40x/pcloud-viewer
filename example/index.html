@@ -24,10 +24,11 @@
 <script src="../build/viewer.min.js"></script>
 <script type="module">
   const viewer = new PCLOUD.Viewer(
-    {viewport: document.getElementById('pcloud'), pointBudget: 500000},
+    {viewport: document.getElementById('pcloud')},
     (v) => {
       v.loadPointCloud({
-        metaUrl: "/pcloud/meta.json"
+        metaUrl: "/pcloud/meta.json",
+        pointBudget: 1000000
       })
     }
   )

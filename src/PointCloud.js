@@ -1,7 +1,7 @@
 // @flow
 
 import {extend} from "./Utils"
-import {Box3, Frustum, Matrix4, PerspectiveCamera, OrthographicCamera, Vector3, Scene} from "three"
+import {Box3, Frustum, Matrix4, PerspectiveCamera, OrthographicCamera, Vector3, Scene, WebGLRenderer} from "three"
 import {OctreeNode} from "./Node"
 import {createChildAABB} from "./Utils"
 import {BinaryHeap} from "./BinaryHeap"
@@ -79,6 +79,7 @@ export class PointCloud {
   onInit: ?Function
   isInit: boolean = false
   scene: ?Scene = null
+  minimumNodePixelSize: number = 150
 
   constructor(options: PointCloudOptions) {
     this.options = extend({}, defaultOptions, options)
@@ -167,6 +168,7 @@ export class PointCloud {
 
             this._buildNodes()
           } catch (e) {
+            console.log(e)
             throw new Error(`Failed to parse meta file!`)
           }
         } else {
@@ -182,10 +184,12 @@ export class PointCloud {
     this.scene = scene
   }
 
-  getVisibleNodes(camera: PerspectiveCamera | OrthographicCamera) {
+  getVisibleNodes(camera: PerspectiveCamera | OrthographicCamera, renderer: WebGLRenderer) {
     if (!this.scene) {
       return
     }
+
+    let visibleNodes = []
 
     camera.updateMatrixWorld()
 
@@ -193,6 +197,9 @@ export class PointCloud {
     let numVisiblePoints = 0
     let frustum = new Frustum()
     let viewInvert = camera.matrixWorldInverse
+    let lowestSpacing = Infinity
+    let domWidth = renderer.domElement.clientWidth
+    let domHeight = renderer.domElement.clientHeight
 
     let frustumCam = camera.clone()
     let proj = camera.projectionMatrix
@@ -210,7 +217,11 @@ export class PointCloud {
     let camObjPos = new Vector3().setFromMatrixPosition(camMatrixObject)
 
     // Add root node first
-    priorityQueue.push({node: this.rootNode, weight: Number.MAX_VALUE})
+    Object.keys(this.nodes).forEach(key => {
+      if (this.nodes[key].level <= 1) {
+        priorityQueue.push({node: this.nodes[key], weight: Number.MAX_VALUE})
+      }
+    })
 
     while (priorityQueue.size() > 0) {
       let element = priorityQueue.pop()
@@ -222,48 +233,64 @@ export class PointCloud {
       let insideFrustum = frustum.intersectsBox(box)
       let visible = insideFrustum
 
-      if (insideFrustum) {
-        visible = visible && !(numVisiblePoints + node.getNumPoints() > this.options.pointBudget)
-        visible = visible && level < this.options.maxLevel
-        visible = visible || node.getLevel() <= 2
+      visible = visible && !(numVisiblePoints + node.getNumPoints() > this.options.pointBudget);
+      visible = visible && level < this.options.maxLevel;
+      visible = visible || node.getLevel() <= 1;
+
+      if (node.spacing) {
+        lowestSpacing = Math.min(lowestSpacing, node.spacing)
+      }
+
+      if (numVisiblePoints + node.getNumPoints() > this.options.pointBudget) {
+        break;
       }
 
       if (visible) {
         numVisiblePoints += node.getNumPoints()
       }
 
-      node.setVisibility(visible)
-
       if (!visible) {
         continue
+      } else {
+        visibleNodes.push(node)
       }
 
       node.getChildren().forEach(child => {
-        let distance = child.boundingSphere.center.distanceTo(camObjPos)
-        priorityQueue.push({node: child, weight: distance})
+        let weight = 0
+        // let distance = child.boundingSphere.center.distanceTo(camObjPos)
+        let sphere = child.boundingSphere
+        let center = sphere.center
+        let dx = camObjPos.x - center.x
+        let dy = camObjPos.y - center.y
+        let dz = camObjPos.z - center.z
+
+        let dd = dx * dx + dy * dy + dz * dz
+        let distance = Math.sqrt(dd)
+
+        let radius = sphere.radius
+
+        let fov = (camera.fov * Math.PI) / 180
+        let slope = Math.tan(fov / 2)
+        let projFactor = (0.5 * domHeight) / (slope * distance)
+        let screenPixelRadius = radius * projFactor
+
+        if (screenPixelRadius < this.minimumNodePixelSize) {
+          return
+        }
+
+        weight = screenPixelRadius
+
+        if (distance - radius < 0) {
+          weight = Number.MAX_VALUE
+        }
+
+        priorityQueue.push({node: child, weight: weight})
       })
     }
 
-    this.loadVisibleNodes()
-  }
-
-  visibleNodes(): Array<OctreeNode> {
-    let nodes: Array<OctreeNode> = []
-
-    Object.keys(this.nodes).forEach(key => {
-      if (this.nodes[key].isVisible()) {
-        nodes.push(this.nodes[key])
-      }
-    })
-
-    return nodes
-  }
-
-  loadVisibleNodes() {
-    this.visibleNodes().forEach(node => {
-      if (!node.isLoaded()) {
-        node.loadPoints()
-      }
-    })
+    return {
+      lowestSpacing: lowestSpacing,
+      visibleNodes: visibleNodes
+    }
   }
 }
