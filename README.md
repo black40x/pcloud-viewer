@@ -1,6 +1,8 @@
 # PCloud viewer
 
-This is a simple point clod viewer prototype.
+This is a simple point cloud viewer prototype.
+
+Use: https://github.com/black40x/ply2octree for create point cloud.
 
 ```
 // Build ...
