@@ -168,7 +168,6 @@ export class PointCloud {
 
             this._buildNodes()
           } catch (e) {
-            console.log(e)
             throw new Error(`Failed to parse meta file!`)
           }
         } else {
