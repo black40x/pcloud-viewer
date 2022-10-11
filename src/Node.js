@@ -4,6 +4,7 @@ import {
   Box3,
   BufferGeometry,
   Float32BufferAttribute,
+  PointsMaterial,
   Points,
   Sphere,
   Scene,
@@ -11,7 +12,7 @@ import {
 } from 'three'
 
 import {BoxHelper} from "./BoxHelper"
-import {PointMaterial} from "./PointMaterial";
+import {PointMaterial} from "./PointMaterial"
 
 const binaryRecordSize = 27
 
@@ -34,6 +35,7 @@ export class OctreeNode {
   geometry: ?BufferGeometry
   pointCloudPoints: ?Points
   scene: ?Scene
+  material
 
   constructor(name: string, boundingBox: Box3, scene: Scene, chunkUrl: string) {
     this.id = OctreeNode.IDCount++
@@ -56,6 +58,8 @@ export class OctreeNode {
     this.pointCloudPoints = null
     this.chunkUrl = chunkUrl
     this.scene = scene
+    this.material = new PointMaterial()
+    // this.material = new PointsMaterial({size: 0.5, vertexColors: true, transparent: true})
   }
 
   setVisibility(visible: boolean) {
@@ -158,7 +162,7 @@ export class OctreeNode {
     this.geometry.setAttribute( 'position', new Float32BufferAttribute(vertices, 3))
     this.geometry.setAttribute( 'color', new Float32BufferAttribute(colors, 3))
 
-    this.pointCloudPoints = new Points(this.geometry, new PointMaterial())
+    this.pointCloudPoints = new Points(this.geometry, this.material)
 
     if (this.visible) {
       this.scene.add(this.pointCloudPoints)

@@ -42,12 +42,12 @@ class Viewer {
     this.scene.add(new AmbientLight(0xfefefe))
 
     this.camera = new PerspectiveCamera(10, 1, 1, 1000)
-    this.camera.position.set(0, 0, -170)
+    this.camera.position.set(0, 0, 170)
     this.camera.add(new PointLight(0xffffff, 1.0))
     this.camera.aspect = this.viewport.offsetWidth / this.viewport.offsetHeight
     this.camera.updateProjectionMatrix()
 
-    this.renderer = new WebGLRenderer({ antialias: true, alpha: true })
+    this.renderer = new WebGLRenderer({ antialias: false, alpha: false })
     this.renderer.setClearColor(0x000000, 0.5)
     this.renderer.setSize(this.viewport.offsetWidth, this.viewport.offsetHeight)
     this.renderer.setPixelRatio(window.devicePixelRatio)
@@ -107,7 +107,7 @@ class Viewer {
         near = Math.min(100.0, Math.max(0.01, near))
         far = Math.max(far, near + 10000)
 
-        if (near === Infinity){
+        if (near === Infinity) {
           near = 0.1
         }
 
