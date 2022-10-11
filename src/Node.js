@@ -58,6 +58,8 @@ export class OctreeNode {
     this.pointCloudPoints = null
     this.chunkUrl = chunkUrl
     this.scene = scene
+
+    // Not work in safari
     this.material = new PointMaterial()
     // this.material = new PointsMaterial({size: 0.5, vertexColors: true, transparent: true})
   }

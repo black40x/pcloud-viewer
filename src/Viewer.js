@@ -41,8 +41,8 @@ class Viewer {
     this.scene.background = new Color(0x000000)
     this.scene.add(new AmbientLight(0xfefefe))
 
-    this.camera = new PerspectiveCamera(10, 1, 1, 1000)
-    this.camera.position.set(0, 0, 170)
+    this.camera = new PerspectiveCamera(10, 1, 1, 3500)
+    this.camera.position.set(0, 0, -170)
     this.camera.add(new PointLight(0xffffff, 1.0))
     this.camera.aspect = this.viewport.offsetWidth / this.viewport.offsetHeight
     this.camera.updateProjectionMatrix()
@@ -70,18 +70,18 @@ class Viewer {
     this.controls.rotateSpeed = 1.0
     this.controls.zoomSpeed = 1.2
     this.controls.panSpeed = 0.1
+    this.controls.minDistance = 5
+    this.controls.maxDistance = 1500
 
     this.controls.addEventListener('change', () => {
-      this.render()
+      // this.render()
     })
   }
 
   loadPointCloud(options: PointCloudOptions) {
     if (!this.pointCloud) {
       this.pointCloud = new PointCloud(options)
-      this.pointCloud.init(this.scene, () => {
-        this.render()
-      })
+      this.pointCloud.init(this.scene, () => {})
     } else {
       throw new Error(`PointCloud already loaded`)
     }
@@ -90,7 +90,7 @@ class Viewer {
   animation() {
     requestAnimationFrame(this.animation.bind(this))
     this.controls.update()
-    // this.render()
+    this.render()
   }
 
   render() {
