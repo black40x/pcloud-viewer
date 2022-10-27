@@ -2,9 +2,9 @@
 
 This is a simple point cloud viewer prototype.
 
-Use: https://github.com/black40x/ply2octree for create point cloud.
+Use [ply2octree](https://github.com/black40x/ply2octree) for create point cloud.
 
-View demo at https://black40x.github.io/pcloud-viewer/
+View [demo](https://black40x.github.io/pcloud-viewer/) with my lunch (reconstructed from video). 
 
 ```
 // Build ...
