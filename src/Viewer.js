@@ -11,6 +11,7 @@ import {
 
 import {TrackballControls} from "three/examples/jsm/controls/TrackballControls"
 import {PointCloud} from "./PointCloud"
+import OrientationGizmo from './OrintationGizmo'
 
 type ViewerOptions = {
   viewport: Element
@@ -23,6 +24,7 @@ class Viewer {
   renderer: WebGLRenderer
   controls: TrackballControls
   pointCloud: ?PointCloud
+  orientationGizmo: ?OrientationGizmo
 
   constructor(options: ViewerOptions, onReady: ?Function = null) {
     this.viewport = options.viewport
@@ -56,6 +58,10 @@ class Viewer {
     this.viewport.appendChild(this.renderer.domElement)
 
     this.scene.add(this.camera)
+
+    this.orientationGizmo = new OrientationGizmo(this.camera, { size: 100, padding: 8 })
+    this.orientationGizmo.style.position = "absolute";
+    document.body.appendChild(this.orientationGizmo)
 
     window.addEventListener('resize', () => {
       this.camera.aspect = this.viewport.offsetWidth / this.viewport.offsetHeight
@@ -95,6 +101,7 @@ class Viewer {
 
   render() {
     this.renderer.render(this.scene, this.camera)
+    this.orientationGizmo.update()
     if (this.pointCloud && this.pointCloud.isInited()) {
       let result = this.pointCloud.getVisibleNodes(this.camera, this.renderer)
 
